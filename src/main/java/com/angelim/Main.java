@@ -13,6 +13,8 @@ import com.angelim.service.TopicService;
 import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
+import com.angelim.security.RateLimiter;
+import com.angelim.security.TooManyRequestsException;
 import org.jdbi.v3.core.Jdbi;
 
 public class Main {
@@ -31,6 +33,8 @@ public class Main {
         TopicController topicController = new TopicController(topicService);
         ReplyController replyController = new ReplyController(replyService);
         AuthController authController = new AuthController(authService);
+
+        RateLimiter rateLimiter = new RateLimiter();
 
         var app = Javalin.create(config -> {
             config.routes.beforeMatched(ctx -> {
@@ -82,7 +86,13 @@ public class Main {
                 swaggerConfig.withUiPath("/docs");
             }));
 
-            config.routes.get("/", ctx -> ctx.result("Hello World"))
+            config.routes.before("/api/login", ctx -> {
+                        String ip = ctx.ip();
+                        if (!rateLimiter.isAllowed("login:" + ip, 5, java.time.Duration.ofMinutes(1))) {
+                            throw new TooManyRequestsException("Muitas tentativas de login. Tente novamente em 1 minuto.");
+                        }
+                    })
+                    .get("/", ctx -> ctx.result("Hello World"))
                     .post("/api/login", authController::login)
                     .get("/api/topics", topicController::getAllTopics, Role.ANYONE)
                     .get("/api/topics/{id}", topicController::getTopicById, Role.ANYONE)
@@ -90,6 +100,18 @@ public class Main {
                     .delete("/api/topics/{id}", topicController::deleteTopic, Role.ADMIN)
                     .get("/api/topics/{topicId}/replies", replyController::getRepliesByTopic, Role.ANYONE)
                     .post("/api/topics/{topicId}/replies", replyController::createReply, Role.USER);
+
+            config.routes.exception(IllegalArgumentException.class, (e, ctx) -> {
+                ctx.status(400).json(java.util.Map.of("error", e.getMessage()));
+            });
+
+            config.routes.exception(com.fasterxml.jackson.core.JsonProcessingException.class, (e, ctx) -> {
+                ctx.status(400).json(java.util.Map.of("error", "JSON malformado, vazio ou com formato inválido."));
+            });
+
+            config.routes.exception(TooManyRequestsException.class, (e, ctx) -> {
+                ctx.status(429).json(java.util.Map.of("error", e.getMessage()));
+            });
         }).start(7070);
 
     }
