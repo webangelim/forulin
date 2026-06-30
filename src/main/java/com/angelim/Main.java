@@ -3,6 +3,7 @@ package com.angelim;
 import com.angelim.controller.AuthController;
 import com.angelim.controller.ReplyController;
 import com.angelim.controller.TopicController;
+import com.angelim.controller.UserController;
 import com.angelim.repository.ReplyRepository;
 import com.angelim.repository.TopicRepository;
 import com.angelim.repository.UserRepository;
@@ -10,6 +11,7 @@ import com.angelim.security.Role;
 import com.angelim.service.AuthService;
 import com.angelim.service.ReplyService;
 import com.angelim.service.TopicService;
+import com.angelim.service.UserService;
 import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
@@ -29,10 +31,12 @@ public class Main {
         TopicService topicService = new TopicService(topicRepository);
         AuthService authService = new AuthService(userRepository);
         ReplyService replyService = new ReplyService(replyRepository, topicRepository);
+        UserService userService = new UserService(userRepository);
 
         TopicController topicController = new TopicController(topicService);
         ReplyController replyController = new ReplyController(replyService);
         AuthController authController = new AuthController(authService);
+        UserController userController = new UserController(userService);
 
         RateLimiter rateLimiter = new RateLimiter();
 
@@ -99,7 +103,10 @@ public class Main {
                     .post("/api/topics", topicController::createTopic, Role.USER)
                     .delete("/api/topics/{id}", topicController::deleteTopic, Role.ADMIN)
                     .get("/api/topics/{topicId}/replies", replyController::getRepliesByTopic, Role.ANYONE)
-                    .post("/api/topics/{topicId}/replies", replyController::createReply, Role.USER);
+                    .post("/api/topics/{topicId}/replies", replyController::createReply, Role.USER)
+                    .post("/api/register", userController::register, Role.ANYONE)
+                    .get("/api/users", userController::getAllUsers, Role.ADMIN)
+                    .patch("/api/users/{id}/role", userController::updateUserRole, Role.ADMIN);
 
             config.routes.exception(IllegalArgumentException.class, (e, ctx) -> {
                 ctx.status(400).json(java.util.Map.of("error", e.getMessage()));

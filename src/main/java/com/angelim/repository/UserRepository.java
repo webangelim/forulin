@@ -48,7 +48,6 @@ public class UserRepository {
         });
     }
 
-    // Metodo que o AuthService vai usar para buscar o cara pelo login
     public User findByUsername(String username) {
         return jdbi.withHandle(handle ->
                 handle.createQuery("SELECT * FROM users WHERE username = :username")
@@ -61,6 +60,54 @@ public class UserRepository {
                         ))
                         .findOne()
                         .orElse(null)
+        );
+    }
+
+    public User findById(String id) {
+        return jdbi.withHandle(handle ->
+                handle.createQuery("SELECT * FROM users WHERE id = :id")
+                        .bind("id", id)
+                        .map((rs, ctx) -> new User(
+                                rs.getString("id"),
+                                rs.getString("username"),
+                                rs.getString("password_hash"),
+                                Role.valueOf(rs.getString("role"))
+                        ))
+                        .findOne()
+                        .orElse(null)
+        );
+    }
+
+    public java.util.List<User> findAll() {
+        return jdbi.withHandle(handle ->
+                handle.createQuery("SELECT * FROM users")
+                        .map((rs, ctx) -> new User(
+                                rs.getString("id"),
+                                rs.getString("username"),
+                                rs.getString("password_hash"),
+                                Role.valueOf(rs.getString("role"))
+                        ))
+                        .list()
+        );
+    }
+
+    public void save(User user) {
+        jdbi.useHandle(handle ->
+                handle.createUpdate("INSERT INTO users (id, username, password_hash, role) VALUES (:id, :username, :hash, :role)")
+                        .bind("id", user.id())
+                        .bind("username", user.username())
+                        .bind("hash", user.passwordHash())
+                        .bind("role", user.role().name())
+                        .execute()
+        );
+    }
+
+    public void updateRole(String id, Role role) {
+        jdbi.useHandle(handle ->
+                handle.createUpdate("UPDATE users SET role = :role WHERE id = :id")
+                        .bind("role", role.name())
+                        .bind("id", id)
+                        .execute()
         );
     }
 }
