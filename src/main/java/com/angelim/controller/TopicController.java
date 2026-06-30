@@ -24,6 +24,7 @@ public class TopicController {
             methods = HttpMethod.GET,
             tags = {"Tópicos"},
             queryParams = {
+                    @OpenApiParam(name = "title", type = String.class, description = "Filtro por título do tópico (busca parcial opcional)", required = false),
                     @OpenApiParam(name = "limit", type = Integer.class, description = "Quantidade de tópicos a retornar (padrão: 10, máximo: 50)", required = false),
                     @OpenApiParam(name = "offset", type = Integer.class, description = "Deslocamento de tópicos (padrão: 0)", required = false)
             },
@@ -33,13 +34,14 @@ public class TopicController {
             }
     )
     public void getAllTopics(Context ctx) {
+        String title = ctx.queryParam("title");
         int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(10);
         int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
 
         limit = Math.max(1, Math.min(limit, 50));
         offset = Math.max(0, offset);
 
-        ctx.json(service.getAllTopics(limit, offset));
+        ctx.json(service.getAllTopics(limit, offset, title));
     }
 
     @OpenApi(

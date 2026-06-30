@@ -78,19 +78,25 @@ public class UserRepository {
         );
     }
 
-    public java.util.List<User> findAll(int limit, int offset) {
-        return jdbi.withHandle(handle ->
-                handle.createQuery("SELECT * FROM users LIMIT :limit OFFSET :offset")
-                        .bind("limit", limit)
-                        .bind("offset", offset)
-                        .map((rs, ctx) -> new User(
+    public java.util.List<User> findAll(int limit, int offset, String username) {
+        String query = username == null || username.trim().isEmpty() 
+                ? "SELECT * FROM users" 
+                : "SELECT * FROM users WHERE username LIKE :username";
+        return jdbi.withHandle(handle -> {
+            var q = handle.createQuery(query + " LIMIT :limit OFFSET :offset")
+                    .bind("limit", limit)
+                    .bind("offset", offset);
+            if (username != null && !username.trim().isEmpty()) {
+                q.bind("username", "%" + username + "%");
+            }
+            return q.map((rs, ctx) -> new User(
                                 rs.getString("id"),
                                 rs.getString("username"),
                                 rs.getString("password_hash"),
                                 Role.valueOf(rs.getString("role"))
                         ))
-                        .list()
-        );
+                        .list();
+        });
     }
 
     public void save(User user) {

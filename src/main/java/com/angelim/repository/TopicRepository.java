@@ -28,20 +28,24 @@ public class TopicRepository {
         });
     }
 
-    public List<Topic> findAll(int limit, int offset) {
-        return jdbi.withHandle(handle ->
-                handle.createQuery("SELECT * FROM topics LIMIT :limit OFFSET :offset")
-                        .bind("limit", limit)
-                        .bind("offset", offset)
-                        // Mapeamos manualmente cada linha do banco (ResultSet) para o nosso Record Topic
-                        // Isso tira toda a "mágica" e te mostra como o Java reconstrói os objetos
-                        .map((rs, ctx) -> new Topic(
+    public List<Topic> findAll(int limit, int offset, String title) {
+        String query = title == null || title.trim().isEmpty() 
+                ? "SELECT * FROM topics" 
+                : "SELECT * FROM topics WHERE title LIKE :title";
+        return jdbi.withHandle(handle -> {
+            var q = handle.createQuery(query + " LIMIT :limit OFFSET :offset")
+                    .bind("limit", limit)
+                    .bind("offset", offset);
+            if (title != null && !title.trim().isEmpty()) {
+                q.bind("title", "%" + title + "%");
+            }
+            return q.map((rs, ctx) -> new Topic(
                                 rs.getString("id"),
                                 rs.getString("title"),
                                 rs.getString("author")
                         ))
-                        .list()
-        );
+                        .list();
+        });
     }
 
     public Topic findById(String id) {

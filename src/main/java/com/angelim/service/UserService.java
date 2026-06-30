@@ -36,8 +36,8 @@ public class UserService {
         return new UserResponse(newUser.id(), newUser.username(), newUser.role());
     }
 
-    public List<UserResponse> getAllUsers(int limit, int offset) {
-        return userRepository.findAll(limit, offset).stream()
+    public List<UserResponse> getAllUsers(int limit, int offset, String username) {
+        return userRepository.findAll(limit, offset, username).stream()
                 .map(user -> new UserResponse(user.id(), user.username(), user.role()))
                 .collect(Collectors.toList());
     }
