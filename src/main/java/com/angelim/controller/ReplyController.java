@@ -25,13 +25,23 @@ public class ReplyController {
             pathParams = {
                     @OpenApiParam(name = "topicId", description = "ID do tópico do qual buscar as respostas", required = true)
             },
+            queryParams = {
+                    @OpenApiParam(name = "limit", type = Integer.class, description = "Quantidade de respostas a retornar (padrão: 10, máximo: 50)", required = false),
+                    @OpenApiParam(name = "offset", type = Integer.class, description = "Deslocamento de respostas (padrão: 0)", required = false)
+            },
             responses = {
                     @OpenApiResponse(status = "200", content = {@OpenApiContent(from = Reply[].class)})
             }
     )
     public void getRepliesByTopic(Context ctx) {
         String topicId = ctx.pathParam("topicId");
-        ctx.json(service.getRepliesByTopic(topicId));
+        int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(10);
+        int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
+
+        limit = Math.max(1, Math.min(limit, 50));
+        offset = Math.max(0, offset);
+
+        ctx.json(service.getRepliesByTopic(topicId, limit, offset));
     }
 
     // POST /api/topics/{topicId}/replies

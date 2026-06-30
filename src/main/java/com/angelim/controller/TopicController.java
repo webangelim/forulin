@@ -23,13 +23,23 @@ public class TopicController {
             path = "/api/topics",
             methods = HttpMethod.GET,
             tags = {"Tópicos"},
+            queryParams = {
+                    @OpenApiParam(name = "limit", type = Integer.class, description = "Quantidade de tópicos a retornar (padrão: 10, máximo: 50)", required = false),
+                    @OpenApiParam(name = "offset", type = Integer.class, description = "Deslocamento de tópicos (padrão: 0)", required = false)
+            },
             responses = {
                     // Diz ao Swagger que retorna status 200 e uma lista de Topics
                     @OpenApiResponse(status = "200", content = {@OpenApiContent(from = Topic[].class)})
             }
     )
     public void getAllTopics(Context ctx) {
-        ctx.json(service.getAllTopics());
+        int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(10);
+        int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
+
+        limit = Math.max(1, Math.min(limit, 50));
+        offset = Math.max(0, offset);
+
+        ctx.json(service.getAllTopics(limit, offset));
     }
 
     @OpenApi(

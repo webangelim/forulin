@@ -14,8 +14,8 @@ public class TopicService {
         this.repository = repository;
     }
 
-    public List<Topic> getAllTopics() {
-        return repository.findAll();
+    public List<Topic> getAllTopics(int limit, int offset) {
+        return repository.findAll(limit, offset);
     }
 
     public Topic getTopicById(String id) {

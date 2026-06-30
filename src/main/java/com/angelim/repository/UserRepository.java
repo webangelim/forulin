@@ -78,9 +78,11 @@ public class UserRepository {
         );
     }
 
-    public java.util.List<User> findAll() {
+    public java.util.List<User> findAll(int limit, int offset) {
         return jdbi.withHandle(handle ->
-                handle.createQuery("SELECT * FROM users")
+                handle.createQuery("SELECT * FROM users LIMIT :limit OFFSET :offset")
+                        .bind("limit", limit)
+                        .bind("offset", offset)
                         .map((rs, ctx) -> new User(
                                 rs.getString("id"),
                                 rs.getString("username"),

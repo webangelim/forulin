@@ -16,12 +16,12 @@ public class ReplyService {
         this.topicRepository = topicRepository;
     }
 
-    public List<Reply> getRepliesByTopic(String topicId) {
+    public List<Reply> getRepliesByTopic(String topicId, int limit, int offset) {
         // Verifica se o tópico existe antes de buscar as respostas
         if (topicRepository.findById(topicId) == null) {
             throw new IllegalArgumentException("Erro: O tópico informado não existe.");
         }
-        return replyRepository.findByTopicId(topicId);
+        return replyRepository.findByTopicId(topicId, limit, offset);
     }
 
     public Reply createReply(Reply reply) {

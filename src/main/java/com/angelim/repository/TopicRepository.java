@@ -28,9 +28,11 @@ public class TopicRepository {
         });
     }
 
-    public List<Topic> findAll() {
+    public List<Topic> findAll(int limit, int offset) {
         return jdbi.withHandle(handle ->
-                handle.createQuery("SELECT * FROM topics")
+                handle.createQuery("SELECT * FROM topics LIMIT :limit OFFSET :offset")
+                        .bind("limit", limit)
+                        .bind("offset", offset)
                         // Mapeamos manualmente cada linha do banco (ResultSet) para o nosso Record Topic
                         // Isso tira toda a "mágica" e te mostra como o Java reconstrói os objetos
                         .map((rs, ctx) -> new Topic(

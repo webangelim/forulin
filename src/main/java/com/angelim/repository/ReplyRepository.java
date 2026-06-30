@@ -28,10 +28,12 @@ public class ReplyRepository {
     }
 
     // Buscar todas as respostas de um tópico específico
-    public List<Reply> findByTopicId(String topicId) {
+    public List<Reply> findByTopicId(String topicId, int limit, int offset) {
         return jdbi.withHandle(handle ->
-                handle.createQuery("SELECT * FROM replies WHERE topic_id = :topicId")
+                handle.createQuery("SELECT * FROM replies WHERE topic_id = :topicId LIMIT :limit OFFSET :offset")
                         .bind("topicId", topicId)
+                        .bind("limit", limit)
+                        .bind("offset", offset)
                         .map((rs, ctx) -> new Reply(
                                 rs.getString("id"),
                                 rs.getString("topic_id"),

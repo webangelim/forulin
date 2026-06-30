@@ -43,6 +43,10 @@ public class UserController {
             path = "/api/users",
             methods = HttpMethod.GET,
             tags = {"Usuários"},
+            queryParams = {
+                    @OpenApiParam(name = "limit", type = Integer.class, description = "Quantidade de usuários a retornar (padrão: 10, máximo: 50)", required = false),
+                    @OpenApiParam(name = "offset", type = Integer.class, description = "Deslocamento de usuários (padrão: 0)", required = false)
+            },
             responses = {
                     @OpenApiResponse(status = "200", description = "Lista de usuários", content = {@OpenApiContent(from = UserResponse[].class)}),
                     @OpenApiResponse(status = "401", description = "Não autorizado (Token ausente)"),
@@ -50,7 +54,13 @@ public class UserController {
             }
     )
     public void getAllUsers(Context ctx) {
-        ctx.json(userService.getAllUsers());
+        int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(10);
+        int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
+
+        limit = Math.max(1, Math.min(limit, 50));
+        offset = Math.max(0, offset);
+
+        ctx.json(userService.getAllUsers(limit, offset));
     }
 
     @OpenApi(
