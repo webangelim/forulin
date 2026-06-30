@@ -65,7 +65,7 @@ public class TopicController {
             // 1. Isso cria a caixa de texto no Swagger pedindo um JSON no formato de Topic
             requestBody = @OpenApiRequestBody(
                     description = "Dados do novo tópico",
-                    content = {@OpenApiContent(from = Topic.class)},
+                    content = {@OpenApiContent(from = NewTopicRequest.class)},
                     required = true
             ),
             responses = {
