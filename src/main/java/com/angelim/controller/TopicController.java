@@ -38,6 +38,9 @@ public class TopicController {
             path = "/api/topics/{id}",
             methods = HttpMethod.GET,
             tags = {"Tópicos"},
+            pathParams = {
+                    @OpenApiParam(name = "id", description = "ID do tópico a ser buscado", required = true)
+            },
             responses = {
                     // 1. Retorna apenas UM Topic, então tiramos o []
                     @OpenApiResponse(status = "200", content = {@OpenApiContent(from = Topic.class)}),
@@ -62,7 +65,6 @@ public class TopicController {
             path = "/api/topics",
             methods = HttpMethod.POST,
             tags = {"Tópicos"},
-            // 1. Isso cria a caixa de texto no Swagger pedindo um JSON no formato de Topic
             requestBody = @OpenApiRequestBody(
                     description = "Dados do novo tópico",
                     content = {@OpenApiContent(from = NewTopicRequest.class)},
